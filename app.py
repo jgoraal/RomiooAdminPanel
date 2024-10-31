@@ -20,9 +20,10 @@ app.layout = dbc.Container([
         dbc.Col([  # Sidebar
             html.H2("Menu", className="text-white p-3"),
             dbc.Nav([
-                dbc.NavLink("Dashboard", href="/", active="exact", className="nav-link"),
-                dbc.NavLink("User Management", href="/users", active="exact", className="nav-link"),
-                dbc.NavLink("Role Management", href="/roles", active="exact", className="nav-link"),  # New Link
+                dbc.NavLink("Strona Główna", href="/", active="exact", className="nav-link"),
+                dbc.NavLink("Zarządzanie Użytkownikami", href="/users", active="exact", className="nav-link"),
+                dbc.NavLink("Zarządzanie Rolami", href="/roles", active="exact", className="nav-link"),
+                dbc.NavLink("Zarządzanie Rezerwacjami",href="/reservations", active="exact", className="nav-link"),
             ], vertical=True, pills=True, className="bg-dark"),
         ], width=2, className="bg-dark vh-100 p-0"),  # Sidebar width adjustment
 

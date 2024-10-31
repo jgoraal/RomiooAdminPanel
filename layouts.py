@@ -1,38 +1,43 @@
 # layouts.py
-from typing import OrderedDict
 
-from dash import dcc, html, dash_table
+
 import dash_bootstrap_components as dbc
+from dash import dcc, html, dash_table
 
 # Dashboard layout
 dashboard_layout = html.Div([
     dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardHeader("Total Users"),
+                dbc.CardHeader("Liczba Zarejstrowanych Użytkowników"),
                 dbc.CardBody(html.H4(id="total-users", className="card-title text-center"))
             ], className="shadow-sm mb-4", style={"border": "1px solid #ccc"}),
         ], width=6),
         dbc.Col([
             dbc.Card([
-                dbc.CardHeader("Verified Emails"),
+                dbc.CardHeader("Liczba Potwierdzonych emaili"),
                 dbc.CardBody(html.H4(id="verified-emails", className="card-title text-center"))
             ], className="shadow-sm mb-4", style={"border": "1px solid #ccc"}),
         ], width=6)
     ]),
-    html.H2("Reservations Per Room", className="mt-4 text-center"),
-    dcc.Graph(id='reservation-graph', config={'displayModeBar': False}),
 
-    html.H2("User List", className="mt-4 text-center"),
+    # Add the combined subplot graph
+    html.H2("Podsumowanie Statystyk", className="mt-4 text-center"),
+    dcc.Graph(id='reservation-graph', config={'displayModeBar': False}),
+    dcc.Graph(id='reservation-per-day-graph', config={'displayModeBar': False}),
+    dcc.Graph(id='users-vs-reservations-graph', config={'displayModeBar': False}),
+
+    # Users Table
+    html.H2("Lista Użytkowników", className="mt-4 text-center"),
     dash_table.DataTable(
         id='user-table',
         columns=[
-            {'name': 'Username', 'id': 'username'},
+            {'name': 'Nazwa', 'id': 'username'},
             {'name': 'Email', 'id': 'email'},
-            {'name': 'Verified', 'id': 'verified'},
-            {'name': 'Role', 'id': 'role'},
-            {'name': 'Last Seen', 'id': 'lastSeen'},
-            {'name': 'Created', 'id': 'created'}
+            {'name': 'Potwierdzony', 'id': 'verified'},
+            {'name': 'Rola', 'id': 'role'},
+            {'name': 'Ostatnio Widziany', 'id': 'lastSeen'},
+            {'name': 'Stworzone', 'id': 'created'}
         ],
         style_table={'overflowX': 'auto'},
         style_header={'backgroundColor': 'lightgrey', 'fontWeight': 'bold'},
@@ -41,10 +46,11 @@ dashboard_layout = html.Div([
     ),
     dcc.Interval(
         id='interval-component',
-        interval=5 * 1000,  # Refresh every 5 seconds
+        interval=50 * 1000,  # Refresh every 5 seconds
         n_intervals=0
     )
 ])
+
 
 # User management layout
 user_management_layout = html.Div([
@@ -52,10 +58,10 @@ user_management_layout = html.Div([
     dash_table.DataTable(
         id='user-table-management',
         columns=[
-            {'name': 'Username', 'id': 'username'},
+            {'name': 'Nazwa', 'id': 'username'},
             {'name': 'Email', 'id': 'email'},
-            {'name': 'Role', 'id': 'role'},
-            {'name': 'Verified', 'id': 'verified'}
+            {'name': 'Rola', 'id': 'role'},
+            {'name': 'Potwierdzony', 'id': 'verified'}
         ],
         style_table={'overflowX': 'auto'},
         style_header={'backgroundColor': 'lightgrey', 'fontWeight': 'bold'},
@@ -69,22 +75,8 @@ user_management_layout = html.Div([
     )
 ])
 
-from dash import dcc, html, dash_table
-import pandas as pd
-from collections import OrderedDict
-import dash_bootstrap_components as dbc
-
-# Define the data as a list of dictionaries (JSON serializable)
-data = [
-    {'username': 'User1', 'email': 'user1@example.com', 'role': 'GUEST', 'change_role': 'GUEST'},
-    {'username': 'User2', 'email': 'user2@example.com', 'role': 'ADMIN', 'change_role': 'ADMIN'},
-    {'username': 'User3', 'email': 'user3@example.com', 'role': 'EMPLOYEE', 'change_role': 'EMPLOYEE'}
-]
 
 # Define the layout with the DataTable
-from dash import dcc, html, dash_table
-import dash_bootstrap_components as dbc
-
 user_role_management_layout = html.Div([
 
     html.H1("User Role Management", className="text-center"),
@@ -92,7 +84,7 @@ user_role_management_layout = html.Div([
 
     dash_table.DataTable(
         id='guest-user-table',
-        data=data,  # Will be populated dynamically via callback
+        data=[],
         columns=[
             {'name': 'Username', 'id': 'username'},
             {'name': 'Email', 'id': 'email'},
@@ -113,15 +105,48 @@ user_role_management_layout = html.Div([
         style_table={'overflowX': 'visible', 'overflowY': 'visible'},
         style_header={'backgroundColor': 'lightgrey', 'fontWeight': 'bold'},
         style_cell={'textAlign': 'center', 'padding': '10px'},
-        css=[    {'selector': '.dash-table-container', 'rule': 'height: auto !important;'},
-                 {'selector': '.Select-menu-outer', 'rule': 'display: block !important; z-index: 9999 !important;'},
-                 {'selector': '.dash-cell', 'rule': 'position: relative; z-index: 9999 !important;'}]
-,  # Ensure dropdown visibility and table stays on top
+        css=[{'selector': '.dash-table-container', 'rule': 'height: auto !important;'},
+             {'selector': '.Select-menu-outer', 'rule': 'display: block !important; z-index: 9999 !important;'},
+             {'selector': '.dash-cell', 'rule': 'position: relative; z-index: 9999 !important;'}
+             ],
+        page_size=10
     ),
     html.Button("Save Changes", id="save-roles-btn", n_clicks=0, className="btn btn-primary mt-3"),
-    dcc.Interval(id='interval-user-management', interval=500 * 1000, n_intervals=0)
+
+    # Success message
+    html.Div(id="success-message", className="text-success mt-3"),
+
+    dcc.Interval(id='interval-user-management', interval=5 * 1000, n_intervals=0)
 ])
 
+# Reservation management layout
+reservation_management_layout = html.Div([
+    html.H1("Zarządzanie Rezerwacjami", className="text-center mb-4"),
 
-
-
+    # Reservation table
+    dash_table.DataTable(
+        id='reservation-table',
+        columns=[
+            {'name': 'Nazwa Użytkownika', 'id': 'username'},
+            {'name': 'Rola', 'id': 'userRole'},
+            {'name': 'Utworzono', 'id': 'createdAt', 'type': 'datetime'},
+            {'name': 'Start', 'id': 'startTime', 'type': 'datetime'},
+            {'name': 'Koniec', 'id': 'endTime', 'type': 'datetime'},
+            {'name': 'Liczba Uczestników', 'id': 'participants', 'type': 'numeric'},
+            {'name': 'Pokój', 'id': 'roomId'},
+            {'name': 'Status', 'id': 'status'},
+        ],
+        sort_action='native',  # Allows column sorting
+        sort_by=[{'column_id': 'createdAt', 'direction': 'desc'}],  # Default sorting by createdAt
+        page_size=10,  # Pagination
+        style_table={'overflowX': 'auto'},
+        style_header={'backgroundColor': 'lightgrey', 'fontWeight': 'bold'},
+        style_cell={'textAlign': 'center', 'padding': '10px'},
+        style_as_list_view=True
+    ),
+    dcc.Interval(
+        id='interval-reservation',
+        interval=5 * 1000,
+        n_intervals=0
+    )
+])
