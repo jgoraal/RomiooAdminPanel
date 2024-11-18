@@ -3,15 +3,20 @@
 import dash
 import dash_bootstrap_components as dbc
 from dash import dcc, html
-
-from layouts import dashboard_layout, user_management_layout
 from callbacks import register_callbacks
+from firebase_service import fetch_users_cached, fetch_reservations_cached, fetch_rooms_cached
+
+# Fetch data once and cache it globally
+cached_users = fetch_users_cached()
+cached_reservations = fetch_reservations_cached()
+cached_rooms = fetch_rooms_cached()
+
 
 # Dash app initialization with Bootstrap theme
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
 # Register callbacks
-register_callbacks(app)
+register_callbacks(app,cached_users,cached_reservations,cached_rooms)
 
 # Layout of the app
 app.layout = dbc.Container([

@@ -1,17 +1,15 @@
 # callbacks.py
 
 from dash.dependencies import Input, Output, State
-from firebase_service import fetch_user_data, fetch_reservation_data, fetch_guest_users, update_user_role, fetch_pending_reservations,fetch_all_reservation
+from firebase_service import get_guest_users, update_user_role, get_pending_reservations
 from layouts import dashboard_layout, user_management_layout, user_role_management_layout,reservation_management_layout
 import plotly.express as px
 from dash import callback_context
 import pandas as pd
 import dash
-from plotly.subplots import make_subplots
 
 
-def register_callbacks(app):
-    # Dashboard Callback
+def register_callbacks(app,users,reservations,rooms):
     # Dashboard Callback
     @app.callback(
         [Output('reservation-graph', 'figure'),
@@ -23,12 +21,9 @@ def register_callbacks(app):
         [Input('interval-component', 'n_intervals')]
     )
     def update_dashboard(n):
-        # Fetch data
-        reservation_data = fetch_all_reservation()
-        users = fetch_user_data()
 
         # Convert data to DataFrame
-        reservation_data = pd.DataFrame(reservation_data)  # Convert reservation_data to DataFrame
+        reservation_data = pd.DataFrame(reservations)  # Convert reservation_data to DataFrame
         users_df = pd.DataFrame(users)  # Convert users to DataFrame
 
         # Convert 'created' column to datetime in users_df
@@ -86,7 +81,7 @@ def register_callbacks(app):
         [Input('interval-user', 'n_intervals')]
     )
     def update_user_management(n):
-        users = fetch_user_data()
+        #users = fetch_users_data()
         return users
 
     # User role
@@ -102,21 +97,23 @@ def register_callbacks(app):
     def handle_user_roles(n_clicks, pathname, n_intervals, data):
         ctx = callback_context
 
+        guest = get_guest_users()
+
         # Check which input triggered the callback
         if not ctx.triggered:
-            return dash.no_update, dash.no_update, dash.no_update
+            return guest, dash.no_update, dash.no_update
 
         trigger = ctx.triggered[0]['prop_id'].split('.')[0]
 
         # Load data immediately when the page is first visited
         if trigger == 'url' and pathname == '/roles':  # Initial page load for '/roles' path
-            users = fetch_guest_users()
-            return users, dash.no_update, dash.no_update
+            guest = get_guest_users()
+            return guest, dash.no_update, dash.no_update
 
         # If the interval is triggered, refresh the table with fresh user data
         if trigger == 'interval-user-management':
-            users = fetch_guest_users()
-            return users, dash.no_update, dash.no_update
+            guest = get_guest_users()
+            return guest, dash.no_update, dash.no_update
 
         # If the save button is clicked, save the changes to Firestore
         if trigger == 'save-roles-btn' and n_clicks > 0:
@@ -157,12 +154,12 @@ def register_callbacks(app):
     )
     def update_reservation_table(n):
         # Fetch pending reservations
-        reservations = fetch_pending_reservations()
+        pending = get_pending_reservations()
 
-        print(reservations)
+        print(pending)
 
         # Convert the list of reservations to a DataFrame for easier handling
-        df = pd.DataFrame(reservations)
+        df = pd.DataFrame(pending)
 
         # Sort by 'createdAt' in descending order
         df.sort_values(by='createdAt', ascending=False, inplace=True)
