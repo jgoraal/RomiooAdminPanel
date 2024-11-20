@@ -48,7 +48,7 @@ def fetch_reservations():
     global cached_reservations
     if cached_reservations is None:
         cached_reservations = []
-        statuses = ['PENDING', 'CONFIRMED', 'CANCELLED']
+        statuses = ['PENDING', 'CONFIRMED', 'CANCELED']
         cached_users = fetch_users()
         cached_rooms = fetch_rooms()
         user_ids = [user['uid'] for user in cached_users]
