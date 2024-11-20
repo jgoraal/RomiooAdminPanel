@@ -5,11 +5,12 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 from callbacks import register_callbacks
 from firebase_service import fetch_users_cached, fetch_reservations_cached, fetch_rooms_cached
+from test import *
 
 # Fetch data once and cache it globally
-cached_users = fetch_users_cached()
-cached_reservations = fetch_reservations_cached()
-cached_rooms = fetch_rooms_cached()
+cached_users = fetch_users()#fetch_users_cached()
+cached_reservations = fetch_reservations()#fetch_reservations_cached()
+cached_rooms = fetch_rooms()#fetch_rooms_cached()
 
 
 # Dash app initialization with Bootstrap theme

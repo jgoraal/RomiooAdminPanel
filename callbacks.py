@@ -1,12 +1,14 @@
 # callbacks.py
 
 from dash.dependencies import Input, Output, State
-from firebase_service import get_guest_users, update_user_role, get_pending_reservations
+#from firebase_service import get_guest_users, update_user_role, get_pending_reservations
 from layouts import dashboard_layout, user_management_layout, user_role_management_layout,reservation_management_layout
 import plotly.express as px
 from dash import callback_context
 import pandas as pd
 import dash
+
+from test import get_pending_reservationss, get_guest_userss, update_user_rolee
 
 
 def register_callbacks(app,users,reservations,rooms):
@@ -97,7 +99,9 @@ def register_callbacks(app,users,reservations,rooms):
     def handle_user_roles(n_clicks, pathname, n_intervals, data):
         ctx = callback_context
 
-        guest = get_guest_users()
+        guest = get_guest_userss() #get_guest_users()
+
+        #print(guest)
 
         # Check which input triggered the callback
         if not ctx.triggered:
@@ -107,12 +111,12 @@ def register_callbacks(app,users,reservations,rooms):
 
         # Load data immediately when the page is first visited
         if trigger == 'url' and pathname == '/roles':  # Initial page load for '/roles' path
-            guest = get_guest_users()
+            guest = get_guest_userss()#get_guest_users()
             return guest, dash.no_update, dash.no_update
 
         # If the interval is triggered, refresh the table with fresh user data
         if trigger == 'interval-user-management':
-            guest = get_guest_users()
+            guest = get_guest_userss()#get_guest_users()
             return guest, dash.no_update, dash.no_update
 
         # If the save button is clicked, save the changes to Firestore
@@ -121,7 +125,7 @@ def register_callbacks(app,users,reservations,rooms):
             for user in data:
                 try:
                     # Update role in Firestore for each user
-                    update_user_role(user['id'], user['change_role'])
+                    update_user_rolee(user['id'], user['change_role'])#update_user_role(user['id'], user['change_role'])
                 except Exception as e:
                     success = False
                     print(f"Error updating user {user['id']}: {e}")
@@ -154,15 +158,19 @@ def register_callbacks(app,users,reservations,rooms):
     )
     def update_reservation_table(n):
         # Fetch pending reservations
-        pending = get_pending_reservations()
-
-        print(pending)
+        pending =  get_pending_reservationss() #get_pending_reservations()
 
         # Convert the list of reservations to a DataFrame for easier handling
         df = pd.DataFrame(pending)
 
-        # Sort by 'createdAt' in descending order
-        df.sort_values(by='createdAt', ascending=False, inplace=True)
+        # Check if 'createdAt' column exists and sort by it
+        if 'createdAt' in df.columns:
+            # Sort by 'createdAt' in descending order
+            df.sort_values(by='createdAt', ascending=False, inplace=True)
+        else:
+            print("Kolumna 'createdAt' nie istnieje w danych rezerwacji.")
+            # Opcjonalnie: Możesz zdecydować się na inną kolumnę do sortowania lub pominąć sortowanie
 
         # Return the DataFrame as a list of dictionaries (for the DataTable)
         return df.to_dict('records')
+
