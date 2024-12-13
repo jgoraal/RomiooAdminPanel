@@ -8,8 +8,10 @@ import pickle
 
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
+#/Users/jakubgorski/Desktop/firebase.json
+#C:/Users/yakoob/Downloads/firebase.json
 # Initialize Firebase Admin SDK with credentials
-cred = credentials.Certificate('C:/Users/yakoob/Downloads/firebase.json')
+cred = credentials.Certificate('/Users/jakubgorski/Desktop/firebase.json')
 firebase_admin.initialize_app(cred)
 
 # Initialize Firestore

@@ -97,7 +97,7 @@ dashboard_layout = html.Div([
 # User management layout
 user_management_layout = html.Div(
     [
-        html.H1("User Management"),
+        html.H1("Użytkownicy"),
         dash_table.DataTable(
             id="user-table-management",
             columns=[
@@ -110,6 +110,7 @@ user_management_layout = html.Div(
             style_header={"backgroundColor": "lightgrey", "fontWeight": "bold"},
             style_cell={"textAlign": "center", "padding": "10px"},
             style_as_list_view=True,
+            page_size=20
         ),
         dcc.Interval(id="interval-user", interval=200 * 1000, n_intervals=0),
     ]
@@ -120,17 +121,17 @@ user_management_layout = html.Div(
 # Define the layout with the DataTable
 user_role_management_layout = html.Div(
     [
-        html.H1("User Role Management", className="text-center"),
-        html.H3("GUEST Users with Verified Emails", className="text-center mt-4"),
+        html.H1("Zarządzanie Rolami", className="text-center"),
+        html.H3(" ", className="text-center mt-4"),
         dash_table.DataTable(
             id="guest-user-table",
             data=[],
             columns=[
-                {"name": "Username", "id": "username"},
+                {"name": "Nazwa Użtkownika", "id": "username"},
                 {"name": "Email", "id": "email"},
-                {"name": "Role", "id": "role"},
+                {"name": "Rola", "id": "role"},
                 {
-                    "name": "Change Role",
+                    "name": "Zmień Role",
                     "id": "change_role",
                     "presentation": "dropdown",
                 },  # Dropdown column
@@ -146,6 +147,10 @@ user_role_management_layout = html.Div(
                     ]
                 }
             },
+            sort_action="native",
+            sort_by=[
+                {"column_id": "email", "direction": "asc"}
+            ],
             cell_selectable=False,  # Disable row selection
             style_table={"overflowX": "visible", "overflowY": "visible"},
             style_header={"backgroundColor": "lightgrey", "fontWeight": "bold"},
@@ -204,20 +209,16 @@ reservation_management_layout = html.Div(
                 {"name": "Koniec", "id": "endTime", "type": "datetime"},
                 {"name": "Liczba Uczestników", "id": "participants", "type": "numeric"},
                 {"name": "Pokój", "id": "roomName"},
-                {"name": "Status", "id": "status"},
                 {
-                    "name": "change status",
-                    "id": "change_status",
+                    "name": "Status",
+                    "id": "status",
                     "presentation": "dropdown",
-                },  # Dropdown column
+                    "editable": True,
+                },
             ],
-            sort_action="native",  # Allows column sorting
-            sort_by=[
-                {"column_id": "createdAt", "direction": "desc"}
-            ],  # Default sorting by createdAt
-            editable=True,  # Allow edits in the table
-            dropdown={  # Define the dropdown options
-                "change_status": {
+            editable=True,
+            dropdown={
+                "status": {
                     "options": [
                         {"label": "PENDING", "value": "PENDING"},
                         {"label": "CONFIRMED", "value": "CONFIRMED"},
@@ -225,7 +226,12 @@ reservation_management_layout = html.Div(
                     ],
                 }
             },
-            cell_selectable=False,  # Disable row selection
+            #hidden_columns=["createdAt-long"],
+            sort_action="native",
+            sort_by=[
+                {"column_id": "createdAt-long", "direction": "desc"}
+            ],
+            cell_selectable=False,
             style_table={"overflowX": "visible", "overflowY": "visible"},
             style_header={"backgroundColor": "lightgrey", "fontWeight": "bold"},
             style_cell={"textAlign": "center", "padding": "10px"},
@@ -252,15 +258,16 @@ reservation_management_layout = html.Div(
         html.Div(
             [
                 html.Button(
-                    "Save Changes",
-                    id="save-status-btn",
+                    "Zapisz zmiany",
+                    id="reservation-save-status-btn",
                     n_clicks=0,
                     className="btn btn-primary mt-3",
                 ),
-                html.Div(id="success-message", className="text-success mt-3"),
+                html.Div(id="reservation-success-message", className="text-success mt-3"),
             ],
             style={"textAlign": "right"},
         ),
         dcc.Interval(id="interval-reservation", interval=200 * 1000, n_intervals=0),
     ]
 )
+

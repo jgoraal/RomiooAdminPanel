@@ -11,7 +11,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 
-from test import get_pending_reservationss, get_guest_userss, update_user_rolee
+from test import get_pending_reservationss, get_guest_userss, update_user_rolee, update_reservationn
 
 
 def register_callbacks(app,users,reservations,rooms):
@@ -256,24 +256,48 @@ def register_callbacks(app,users,reservations,rooms):
 
     # Reservation
     @app.callback(
-        Output('reservation-table', 'data'),
-        [Input('interval-reservation', 'n_intervals')]  # Optional: auto-update at intervals
+        Output("reservation-success-message", "children"),
+        Output("reservation-table", "data"),
+        Input("reservation-save-status-btn", "n_clicks"),
+        Input('interval-reservation', 'n_intervals'),
+        State("reservation-table", "data"),
+        #prevent_initial_call=True,
     )
-    def update_reservation_table(n):
-        # Fetch pending reservations
-        pending =  get_pending_reservationss() #get_pending_reservations()
+    def update_reservation_table(n_clicks, n_intervals, rows):
+        ctx = dash.callback_context
 
-        # Convert the list of reservations to a DataFrame for easier handling
-        df = pd.DataFrame(pending)
+        if not ctx.triggered:
+            return dash.no_update, get_pending_reservationss()
 
-        # Check if 'createdAt' column exists and sort by it
-        if 'createdAt' in df.columns:
-            # Sort by 'createdAt' in descending order
-            df.sort_values(by='createdAt', ascending=False, inplace=True)
+        triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+        if triggered_id == 'reservation-save-status-btn' and n_clicks > 0:
+            # Kliknięto przycisk "Zapisz zmiany"
+            if rows is None:
+                raise dash.exceptions.PreventUpdate
+
+            # Przejdź przez wszystkie wiersze tabeli i zaktualizuj status rezerwacji
+            for row in rows:
+                reservation_id = row.get('id')
+                changed_status = row.get('status')
+                # Zaktualizuj status rezerwacji w źródle danych
+                update_reservationn(reservation_id, changed_status)
+            # Po aktualizacji danych, pobierz zaktualizowane rezerwacje
+            updated_data = get_pending_reservationss()
+            return "Zapisano zmiany.", updated_data
         else:
-            print("Kolumna 'createdAt' nie istnieje w danych rezerwacji.")
-            # Opcjonalnie: Możesz zdecydować się na inną kolumnę do sortowania lub pominąć sortowanie
+            # Odświeżanie tabeli co interwał
+            pending = get_pending_reservationss()
+            # Convert the list of reservations to a DataFrame for easier handling
+            df = pd.DataFrame(pending)
+            # Sort by 'createdAt' if it exists
+            if 'createdAt-long' in df.columns:
+                df.sort_values(by='createdAt-long', ascending=False, inplace=True)
+            else:
+                print("Kolumna 'createdAt' nie istnieje w danych rezerwacji.")
+            # Return the DataFrame as a list of dictionaries (for the DataTable)
+            return dash.no_update, df.to_dict('records')
 
-        # Return the DataFrame as a list of dictionaries (for the DataTable)
-        return df.to_dict('records')
+
+
 
